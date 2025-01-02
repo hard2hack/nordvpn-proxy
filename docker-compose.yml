@@ -23,7 +23,7 @@ services:
     networks:
       - default
     ports:
-      - 8118:8118
+      - ${PROXY_PORT:-8118}:8118
     restart: always
 
 volumes:

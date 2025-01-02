@@ -40,6 +40,7 @@ You will need a [NordVPN](https://nordvpn.com) account.
 - `PROTOCOL` *Optional*, default set to `tcp`, you can change it to `udp`.
 - `SERVER` *Optional*, if not set, connects to the recommended server for you. If set, connects to the server you specify. Example server name format: `us2484.nordvpn.com`.
 - `REFRESH_TIME` *Optional*, defaults to 120 minutes. Will only re-download the NordVPN OVPN files after the set amount of minutes.
+- `PROXY_PORT` *Optional*, defaults to 8118. This is the exposed port of the proxy server.
 
 For more info on networking, check the Docker [docs](https://docs.docker.com/engine/reference/run/#network-settings)
 
