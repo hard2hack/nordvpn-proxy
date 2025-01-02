@@ -41,47 +41,36 @@ You will need a [NordVPN](https://nordvpn.com) account.
 - `SERVER` *Optional*, if not set, connects to the recommended server for you. If set, connects to the server you specify. Example server name format: `us2484.nordvpn.com`.
 - `REFRESH_TIME` *Optional*, defaults to 120 minutes. Will only re-download the NordVPN OVPN files after the set amount of minutes.
 
-## Start container
-
-```Shell
-docker run -d \
---cap-add=NET_ADMIN \
---name=vpn \
---dns=103.86.96.100 \
---dns=103.86.99.100 \
---restart=always \
--e "USERNAME=<nordvpn_username>" \
--e "PASSWORD=<nordvpn_password>" \
--e "LOCAL_NETWORK=192.168.1.0/24" \
--v /etc/localtime:/etc/localtime:ro \
--v ovpn-data:/app/ovpn/config \
--p 8118:8118 \
-jeroenslot/nordvpn-proxy:latest 
-```
-
-Now you can connect other containers to use this connection:
-
-For example:
-```Shell
-docker run -d \
---network="container:vpn" \
-imagename 
-```
-
 For more info on networking, check the Docker [docs](https://docs.docker.com/engine/reference/run/#network-settings)
 
 ## Docker-compose
 
 You can use the `docker-compose.yml` example for you own setup. Change the environment variables!
 
+Configuration: copy the env.txt file and add your user/password/country to the config file
+```Shell
+cp env.txt .env
+```
+
 Start the vpn proxy using:
 
+(For security reason we build our own docker container)
+
 ```Shell
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 For more info on networking, check the Docker [docs](https://docs.docker.com/compose/compose-file/#network_mode)
 
+## Test
+
+```Shell
+$ curl -s -x localhost:8118 https://nordvpn.com/wp-admin/admin-ajax.php\?action\=get_user_info_data | jq -r '.status'
+true
+```
+
+You should see "true". "false" means not connected to NordVPN.
 
 ## Use Privoxy in your browser
 

@@ -1,4 +1,4 @@
-FROM alpine:3.10.1
+FROM alpine:3.21.0
 LABEL MAINTAINER "Jeroen Slot"
 
 ENV OVPN_FILES="https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip" \
@@ -41,4 +41,5 @@ RUN \
 CMD ["runsvdir", "/app"]
 
 HEALTHCHECK --interval=1m --timeout=10s \
-  CMD if [[ $( curl -x localhost:8118 https://api.nordvpn.com/vpn/check/full | jq -r '.["status"]' ) = "Protected" ]] ; then exit 0; else exit 1; fi
+  CMD if [[ $( curl -s -x localhost:8118 https://nordvpn.com/wp-admin/admin-ajax.php?action=get_user_info_data | jq -r '.["status"]' ) = "true" ]] ; then exit 0; else exit 1; fi
+
