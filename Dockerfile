@@ -39,6 +39,9 @@ RUN \
 
 CMD ["runsvdir", "/app"]
 
+# The old wp-admin/admin-ajax?action=get_user_info_data page was retired by NordVPN.
+# Use the v1 "insights" helper through the proxy: .protected is true only when the
+# request egresses via a NordVPN server.
 HEALTHCHECK --interval=1m --timeout=10s \
-  CMD if [[ $( curl -s -x localhost:8118 https://nordvpn.com/wp-admin/admin-ajax.php?action=get_user_info_data | jq -r '.["status"]' ) = "true" ]] ; then exit 0; else exit 1; fi
+  CMD if [[ $( curl -s -x localhost:8118 https://api.nordvpn.com/v1/helpers/ips/insights | jq -r '.["protected"]' ) = "true" ]] ; then exit 0; else exit 1; fi
 

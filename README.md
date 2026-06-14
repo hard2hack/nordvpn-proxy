@@ -67,7 +67,7 @@ For more info on networking, check the Docker [docs](https://docs.docker.com/com
 ## Test
 
 ```Shell
-$ curl -s -x localhost:8118 https://nordvpn.com/wp-admin/admin-ajax.php\?action\=get_user_info_data | jq -r '.status'
+$ curl -s -x localhost:8118 https://api.nordvpn.com/v1/helpers/ips/insights | jq -r '.protected'
 true
 ```
 

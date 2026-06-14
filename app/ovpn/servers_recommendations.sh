@@ -32,7 +32,9 @@ if [[ ! -v SERVER ]]; then
                     export COUNTRY_CODE=$(cat $JSON_FILE_SERVER_COUNTRIES | jq '.[]  | select(.code == "'${COUNTRY^^}'") | .id')
                 else 
                     echo "$(adddate) INFO: The country codes are unknown, getting country codes from API"
-                    curl -s https://nordvpn.com/wp-admin/admin-ajax.php?action=servers_countries -o /tmp/servers_countries
+                    # The old wp-admin/admin-ajax?action=servers_countries page was retired by
+                    # NordVPN (now returns 403/HTML). The v1 API exposes the same .code/.id shape.
+                    curl -s https://api.nordvpn.com/v1/servers/countries -o /tmp/servers_countries
                     export COUNTRY_CODE=$(cat $JSON_FILE_SERVER_COUNTRIES | jq '.[]  | select(.code == "'${COUNTRY^^}'") | .id')
             fi
 
@@ -61,12 +63,18 @@ if [[ ! -v SERVER ]]; then
 # Otherwise, use the server that was specified
 else
     echo "$(adddate) INFO: SERVER has been set to ${SERVER^^}"
-    curl --silent https://api.nordvpn.com/server | jq '.[] | select(.domain == '\"$SERVER\"')' > $JSON_FILE
-
-    #Set vars
-    export SERVERNAME="$(jq -r '.name' $JSON_FILE)"
-    export LOAD=$(curl -s $SERVER_STATS_URL$SERVER | jq -r '.[]')
+    # NordVPN retired api.nordvpn.com/server and the undefined SERVER_STATS_URL the
+    # old code relied on. For a pinned server this metadata is informational only:
+    # OpenVPN connects using the ${SERVER}.<proto>.ovpn config by hostname, and the
+    # cron load check (get-status-server.sh) queries the v1 recommendations API on
+    # its own. Pull live load/IP best-effort from recommendations (a pinned host may
+    # not be in the recommended set, in which case these stay "n/a").
+    curl -s "$SERVER_RECOMMENDATIONS_URL" > "$JSON_FILE" || echo '[]' > "$JSON_FILE"
+    export SERVERNAME="$SERVER"
     export UPDATED_AT=""
-    export IP="$(jq -r '.ip_address' $JSON_FILE)"
+    export LOAD="$(jq -r '.[] | select(.hostname=="'"$SERVER"'") | .load' "$JSON_FILE" | head -n1)"
+    export IP="$(jq -r '.[] | select(.hostname=="'"$SERVER"'") | .station' "$JSON_FILE" | head -n1)"
+    : "${LOAD:=n/a}"
+    : "${IP:=n/a}"
     echo "$SERVER" > /tmp/nordvpn_hostname
 fi
